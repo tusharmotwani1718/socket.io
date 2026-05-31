@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
-
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -25,17 +24,36 @@ export default function Home() {
 
   const socket = useRef<any>(null);
 
-  const [showDialog, setShowDialog] = useState<boolean>(true);
+  const [showDialog, setShowDialog] = useState<boolean>(false);
 
   useEffect(() => {
     socket.current = io();
 
     socket.current.on("connect", () => {
-      socket.current.emit("join_room", "tushar")
+      socket.current.on("join_notification", (userName: string) => {
+        // console.log(`user joined: ${userName} client message`);
+        toast.info(`${userName} has joined the room`);
+      })
     })
+
+
+
   }, [])
 
-  
+
+
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    // console.log("data received", e.target.name.value);
+    let name: string = e.target.name.value
+    if (!name || name.trim() === "") return
+
+    name = name.trim();
+
+    socket.current.emit("join_room", name);
+    setShowDialog(false);
+  }
 
 
 
@@ -49,28 +67,39 @@ export default function Home() {
         Join
       </Button>
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <form>
-          <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm">
+          <form onSubmit={handleSubmit}>
             <DialogHeader>
               <DialogTitle>Enter Name</DialogTitle>
               <DialogDescription>
                 Enter your name to join the room
               </DialogDescription>
             </DialogHeader>
+
             <FieldGroup>
               <Field>
                 <Label htmlFor="name-1">Name</Label>
-                <Input id="name-1" name="name" defaultValue="Pedro Duarte" />
+                <Input
+                  id="name-1"
+                  name="name"
+                  defaultValue="John Doe"
+                />
               </Field>
             </FieldGroup>
-            <DialogFooter>
+
+            <DialogFooter className={"my-3"}>
               <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
               </DialogClose>
-              <Button type="submit">Join Group</Button>
+
+              <Button type="submit">
+                Join Group
+              </Button>
             </DialogFooter>
-          </DialogContent>
-        </form>
+          </form>
+        </DialogContent>
       </Dialog>
     </div>
   );

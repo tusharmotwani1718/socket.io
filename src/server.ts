@@ -27,10 +27,16 @@ const handler = app.getRequestHandler();
         console.log(`user connected: ${socket.id}`);
 
         // receive join room event:
-        socket.on("join_room", async (userName) => {
+        socket.on("join_room", async (userName: string) => {
             console.log(`user: ${userName} joined the room`);
 
             await socket.join(ROOM_ID);
+
+            // send to all (this event is listened by all users including the sender):
+            // io.to(ROOM_ID).emit("EVENT_NAME", data);
+
+            // broadcast the event to all other users in the room (this event is listened by other users)
+            socket.to(ROOM_ID).emit("join_notification", userName);            
         })
     });
 

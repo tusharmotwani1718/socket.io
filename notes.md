@@ -8,6 +8,8 @@ Advantages:
 
 # SERVER:
 
-1. The web socket server relies on the http server for the connection initlizatio between the client and the server and also for the fallback.
+-> The web socket server relies on the http server for the connection initlizatio between the client and the server and also for the fallback.
 
-2. In a web socket connection, the main part is an event. The sender (client/server) emits an event with some data and the receiver (client/server) can listen to the event and access the data.
+-> In a web socket connection, the main part is an event. The sender (client/server) emits an event with some data and the receiver (client/server) can listen to the event and access the data.
+
+-> The server can also broadcast the event to all the connected clients. This helps in features like sending notifications to all the connected clients in the room/group. 
