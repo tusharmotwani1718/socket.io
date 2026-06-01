@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
-
+import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Label } from "@/components/ui/label";
+import { useUserStore } from "../../lib/store/user.store"
 
 export default function Home() {
 
@@ -25,6 +26,8 @@ export default function Home() {
   const socket = useRef<any>(null);
 
   const [showDialog, setShowDialog] = useState<boolean>(false);
+
+  const { setUser } = useUserStore();
 
   useEffect(() => {
     socket.current = io();
@@ -53,6 +56,9 @@ export default function Home() {
 
     socket.current.emit("join_room", name);
     setShowDialog(false);
+    setUser(name);
+
+    redirect("/mygroup");
   }
 
 
