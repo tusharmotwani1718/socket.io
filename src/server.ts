@@ -2,6 +2,7 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
+import type { messageObject } from "../types/msg.types";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -16,7 +17,9 @@ const app = next({
 });
 const handler = app.getRequestHandler();
 
-;(async () => {
+
+
+; (async () => {
     await app.prepare();
 
     const httpServer = createServer(handler);
@@ -30,13 +33,24 @@ const handler = app.getRequestHandler();
         socket.on("join_room", async (userName: string) => {
             console.log(`user: ${userName} joined the room`);
 
-            await socket.join(ROOM_ID);
+            socket.join(ROOM_ID);
+
+            console.log(socket.rooms);
 
             // send to all (this event is listened by all users including the sender):
             // io.to(ROOM_ID).emit("EVENT_NAME", data);
 
             // broadcast the event to all other users in the room (this event is listened by other users)
-            socket.to(ROOM_ID).emit("join_notification", userName);            
+            socket.to(ROOM_ID).emit("join_notification", userName);
+        })
+
+
+        // receive message event:
+        socket.on("chatMessage", (msgObject: messageObject) => {
+            console.log("message received: ", msgObject);
+
+            // broadcast the message to all other users in the room (this event is listened by other users)
+            socket.to(ROOM_ID).emit("newMessage", msgObject);
         })
     });
 

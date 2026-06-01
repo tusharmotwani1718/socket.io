@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,29 +19,46 @@ import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label";
 import { useUserStore } from "../../lib/store/user.store"
+import { messageObject } from "../../types/msg.types";
+import { ws } from "../lib/socket/ws"
 
 export default function Home() {
 
 
-  const socket = useRef<any>(null);
+  // const socket = useRef<any>(null);
 
   const [showDialog, setShowDialog] = useState<boolean>(false);
 
   const { setUser } = useUserStore();
 
+  const router = useRouter();
+
   useEffect(() => {
-    socket.current = io();
+    // socket.current = ws;
 
-    socket.current.on("connect", () => {
-      socket.current.on("join_notification", (userName: string) => {
-        // console.log(`user joined: ${userName} client message`);
-        toast.info(`${userName} has joined the room`);
-      })
-    })
+    ws.on("connect", () => {
+      console.log("connected");
+    });
 
+    ws.on("join_notification", (userName: string) => {
+      console.log(`user: ${userName} joined the room client side`);
+      toast.info(`${userName} has joined the room`);
+    });
 
+    ws.on("newMessage", (msgObject: messageObject) => {
+      console.log("new message:", msgObject);
+    });
 
-  }, [])
+    ws.onAny((event: string, ...args: any[]) => {
+      console.log("EVENT:", event, args);
+    });
+
+    return () => {
+      ws.off("connect");
+      ws.off("join_notification");
+      ws.off("newMessage");
+    };
+  }, []);
 
 
 
@@ -54,11 +71,10 @@ export default function Home() {
 
     name = name.trim();
 
-    socket.current.emit("join_room", name);
     setShowDialog(false);
     setUser(name);
 
-    redirect("/mygroup");
+    router.push("/mygroup");
   }
 
 
